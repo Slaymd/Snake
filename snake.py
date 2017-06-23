@@ -21,7 +21,7 @@ pygame.display.update()
 
 #SUPER VARIABLES
 
-version = "1.3"
+version = "1.4"
 
 load = True
 wdaction = "menu"
@@ -94,16 +94,33 @@ def welcomeScreen(phase):
         fe.fill(getColorByName("darkorange"))
     elif phase == 2:
         fe.fill(getColorByName("darkyellow"))
+    font = getFont("Ubuntu-BI",50)
     logo0 = getFont("Ubuntu-B",22).render("projet", 1, getColorByName("white"))
-    fe.blit(logo0, (478, 288))
-    logo1 = getFont("Ubuntu-BI",50).render("Snake.", 1, getColorByName("red"))
-    fe.blit(logo1, (450, 300))
-    logo2 = getFont("Ubuntu-BI",50).render("Snake.", 1, getColorByName("orange"))
-    fe.blit(logo2, (447, 297))
-    logo3 = getFont("Ubuntu-BI",50).render("Snake.", 1, getColorByName("yellow"))
-    fe.blit(logo3, (444, 294))
-    logo4 = getFont("Ubuntu-B",22).render("Andrea - Damien - Darius", 1, getColorByName("white"))
-    fe.blit(logo4, (390, 360))
+    fe.blit(logo0, (454, 288))   
+    logo1 = font.render("Snake.", 1, getColorByName("red"))
+    fe.blit(logo1, (425, 300))
+    logo2 = font.render("Snake.", 1, getColorByName("orange"))
+    fe.blit(logo2, (422, 297))
+    logo3 = font.render("Snake.", 1, getColorByName("yellow"))
+    fe.blit(logo3, (419, 294))
+    cre1 = getFont("Ubuntu-B",16).render("développé par", 1, getColorByName("white"))
+    fe.blit(cre1, (438, 360))
+    cre2 = getFont("Ubuntu-B",22).render("Darius M.", 1, getColorByName("white"))
+    fe.blit(cre2, (445, 378))
+    cre3 = getFont("Ubuntu-B",16).render("aidé par", 1, getColorByName("white"))
+    fe.blit(cre3, (459, 404))
+    cre4 = getFont("Ubuntu-B",22).render("Andrea S.", 1, getColorByName("white"))
+    fe.blit(cre4, (445, 422))
+    cre5 = getFont("Ubuntu-B",16).render("remerciements", 1, getColorByName("white"))
+    fe.blit(cre5, (438, 448))
+    cre6 = getFont("Ubuntu-B",22).render("Damien M.", 1, getColorByName("white"))
+    fe.blit(cre6, (445, 466))
+    cre7 = getFont("Ubuntu-B",22).render("Marius C.", 1, getColorByName("white"))
+    fe.blit(cre7, (445, 488))
+    cre8 = getFont("Ubuntu-B",22).render("Felix  K.", 1, getColorByName("white"))
+    fe.blit(cre8, (445, 510))
+    cre8 = getFont("Ubuntu-B",22).render("Lucas  K.", 1, getColorByName("white"))
+    fe.blit(cre8, (445, 532))
     if phase == 3:
         resetScreen()
     pygame.display.update()
@@ -659,7 +676,7 @@ while load:
             updateCache()
             resetScreen()
             menuact = 0
-            x = size*randrange(0,int((1000)/size))
+            x = size*randrange(0,int((1000-size)/size))
             y = size*randrange(0,int((700-size)/size))
             snakeCoords=[(x,y)]
             #Objectif
@@ -826,7 +843,7 @@ while load:
                     wdaction = "menu"
                 #TAILLE
                 elif (mousecoords[0] >= 120 and mousecoords[0] <= 220) and (mousecoords[1] >= 190 and mousecoords[1] <= 210):
-                    sizes = [5,10,20,25,40,50,100]
+                    sizes = [5,10,20,25,40,50]
                     siID = sizes.index(size)
                     siID += 1
                     if siID == len(sizes):
@@ -914,14 +931,17 @@ while load:
         #Mosaique
         headNbRect = 0
         for headNbRect in range(0,40):
+            #Détermination couleur
             if headNbRect < 20:
                 color = (randrange(150,210),randrange(150,210),randrange(150,210))
             else:
                 color = getColorByName("white")
+            #Localisation
             xH = size*randrange(0,int((1000)/size))
             yH = size*randrange(0,int((700-size)/size))
             while yH > 430:
                 yH = size*randrange(0,int((700-size)/size))
+            #Affichage
             drawRect(color,xH,yH)
         #Logo
         font = getFont("Ubuntu-BI",50)
