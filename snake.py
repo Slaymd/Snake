@@ -2,12 +2,15 @@ import pygame, os
 from pygame.locals import *
 from random import *
 import urllib.request
+import webbrowser
 
 pygame.init()
 #Centre la fenetre
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 #Création fenetre
-fe = pygame.display.set_mode((1000,700))
+wwidth,wheight = 1280,720
+
+fe = pygame.display.set_mode((wwidth,wheight))
 fe.fill((0, 0, 0))
 pygame.display.set_caption("Snake.")
 try:
@@ -21,7 +24,20 @@ pygame.display.update()
 
 #SUPER VARIABLES
 
-version = "1.4"
+version = "1.5"
+
+#Détermine les tailles possibles p/r taille écran
+#PGCD width et height
+a,b=wwidth,wheight
+while b>0:
+    a,b=b,a%b
+pgcd=a
+#Diviseurs
+sizesOK = [pgcd]
+while pgcd>=6:
+    pgcd-=1
+    if sizesOK[0]%pgcd == 0:
+        sizesOK.append(pgcd)
 
 load = True
 wdaction = "menu"
@@ -35,7 +51,7 @@ bgcolor = (255,255,255)
 
 #Clock speed
 
-clockspeed = 5
+clockspeed = 4
 tmit = clockspeed
 
 #Taille
@@ -43,7 +59,7 @@ tmit = clockspeed
 lenght = 1
 objlenght = 6
 dellenght = 0
-size = 25
+size = sizesOK[2]
 
 #Coords
 
@@ -64,27 +80,39 @@ poweruds = True
 powCache = [skin,clockspeed,objlenght]
 powAction = "action"
 
+#Design vars
+
+needmaj = ""
+psize = 0
+while psize <= wwidth*0.75:
+    psize+=size
+
 #
 # ECRAN DE DEMARRAGE & FONCTIONS UTILITAIRES
 #
 
 #Fonc: verifie la version
 def checkVersion():
-    try:
-        #On récup la version sur le serveur
-        verfile = urllib.request.urlopen("http://dariusmartin.hol.es/snake/ver.txt")
-        if verfile.read().decode('utf-8') == version:
-            #A jour
+    global needmaj
+    if needmaj == "":
+        exc = getFont("Ubuntu-BI",32).render("Chargement...", 1, getColorByName("midnight"))
+        fe.blit(exc, (20, 325))
+        pygame.display.update()
+        try:
+            #On récup la version sur le serveur
+            verfile = urllib.request.urlopen("http://dariusmtn.fr/snake/dl/ver.txt")
+            if verfile.read().decode('utf-8') == version:
+                #A jour
+                resetScreen()
+                needmaj = False
+            else:
+                #Non à jour
+                resetScreen()
+                needmaj = True
+                return 0
+        except:
             resetScreen()
-            sendAlert("Vous pouvez changer la difficulté dans les options")
-        else:
-            #Non à jour
-            resetScreen()
-            sendAlert("Votre version n'est pas à jour ! Allez sur dariusmartin.hol.es/snake",getColorByName("darkred"),getColorByName("white"))
-            return 0
-    except:
-        resetScreen()
-        sendAlert("Connexion internet introuvable :(")
+            needmaj = ""
 
 #Fonc: Ecran de démarrage
 def welcomeScreen(phase):
@@ -94,33 +122,31 @@ def welcomeScreen(phase):
         fe.fill(getColorByName("darkorange"))
     elif phase == 2:
         fe.fill(getColorByName("darkyellow"))
-    font = getFont("Ubuntu-BI",50)
-    logo0 = getFont("Ubuntu-B",22).render("projet", 1, getColorByName("white"))
-    fe.blit(logo0, (454, 288))   
+    font = getFont("Ubuntu-BI",50)  
     logo1 = font.render("Snake.", 1, getColorByName("red"))
-    fe.blit(logo1, (425, 300))
+    fe.blit(logo1, ((wwidth-290)-425, 300))
     logo2 = font.render("Snake.", 1, getColorByName("orange"))
-    fe.blit(logo2, (422, 297))
+    fe.blit(logo2, ((wwidth-290)-422, 297))
     logo3 = font.render("Snake.", 1, getColorByName("yellow"))
-    fe.blit(logo3, (419, 294))
+    fe.blit(logo3, ((wwidth-290)-419, 294))
     cre1 = getFont("Ubuntu-B",16).render("développé par", 1, getColorByName("white"))
-    fe.blit(cre1, (438, 360))
+    fe.blit(cre1, ((wwidth-250)-448, 360))
     cre2 = getFont("Ubuntu-B",22).render("Darius M.", 1, getColorByName("white"))
-    fe.blit(cre2, (445, 378))
+    fe.blit(cre2, ((wwidth-250)-445, 378))
     cre3 = getFont("Ubuntu-B",16).render("aidé par", 1, getColorByName("white"))
-    fe.blit(cre3, (459, 404))
+    fe.blit(cre3, ((wwidth-250)-448, 404))
     cre4 = getFont("Ubuntu-B",22).render("Andrea S.", 1, getColorByName("white"))
-    fe.blit(cre4, (445, 422))
+    fe.blit(cre4, ((wwidth-250)-445, 422))
     cre5 = getFont("Ubuntu-B",16).render("remerciements", 1, getColorByName("white"))
-    fe.blit(cre5, (438, 448))
+    fe.blit(cre5, ((wwidth-250)-448, 448))
     cre6 = getFont("Ubuntu-B",22).render("Damien M.", 1, getColorByName("white"))
-    fe.blit(cre6, (445, 466))
+    fe.blit(cre6, ((wwidth-250)-445, 466))
     cre7 = getFont("Ubuntu-B",22).render("Marius C.", 1, getColorByName("white"))
-    fe.blit(cre7, (445, 488))
+    fe.blit(cre7, ((wwidth-250)-445, 488))
     cre8 = getFont("Ubuntu-B",22).render("Felix  K.", 1, getColorByName("white"))
-    fe.blit(cre8, (445, 510))
+    fe.blit(cre8, ((wwidth-250)-445, 510))
     cre8 = getFont("Ubuntu-B",22).render("Lucas  K.", 1, getColorByName("white"))
-    fe.blit(cre8, (445, 532))
+    fe.blit(cre8, ((wwidth-250)-445, 532))
     if phase == 3:
         resetScreen()
     pygame.display.update()
@@ -190,19 +216,71 @@ def getColorByName(color):
         return (255, 255, 255)
 
 #
-# FONCTIONS UTILITAIRES DU JEU ET DESIGN
+# FONCTIONS NIVEAUX ET SCORE
 #
 
-#Fonc: [UI] notification sur le menu
-def sendAlert(text,bg=getColorByName("whitesmoke"),fg=getColorByName("black")):
-    pygame.draw.rect(fe, bg, (0, 620, 1000, 100))
-    pygame.draw.rect(fe, getColorByName("red"), (0, 620, 100, 100))
-    exc = getFont("Ubuntu-BI",62).render("!", 1, getColorByName("white"))
-    fe.blit(exc, (35, 625))
-    text = getFont("Ubuntu-R",22).render(text, 1, fg)
-    fe.blit(text, (150, 645))
-    
+def getXP():
+    try:
+        fichier = open("xp.txt", "r")
+        xp = fichier.read()
+        fichier.close()
+        return int(xp)
+    except:
+        fichier = open("xp.txt", "w")
+        fichier.write("0")
+        fichier.close()
+        return 0
+        
 
+def addXP(xp):
+    xp+=getXP()
+    fichier = open("xp.txt", "w")
+    fichier.write(str(xp))
+    fichier.close()
+
+def getLevel():
+    xp = getXP()
+    for i in range(1,44):
+        if xp >= 50+10*(i*i):
+            xp -= 50+10*(i*i)
+        else:
+            return i-1
+        
+
+def getLevelPercent():
+    try:
+        lvl = getLevel()
+        xpNext = 50+10*((lvl+1)*(lvl+1))
+        xp = getXP()
+        for i in range(1,44):
+            if xp >= 50+10*(i*i):
+                xp -= 50+10*(i*i)
+        return 100-int(((xp-xpNext)/xpNext)*100)*(-1)
+    except:
+        return 0
+
+def getHighScore():
+    try:
+        fichier = open("score.txt", "r")
+        hs = fichier.read()
+        fichier.close()
+        return int(hs)
+    except:
+        fichier = open("score.txt", "w")
+        fichier.write("0")
+        fichier.close()
+        return 0
+    
+def newScore(score):
+    if score > getHighScore():
+        fichier = open("score.txt", "w")
+        fichier.write(str(score))
+        fichier.close()
+
+#
+# FONCTIONS UTILITAIRES DU JEU ET DESIGN
+#
+    
 #Fonc: [UI] met à jour l'affichage des options
 def reloadOption(hover=""):
     buttons = ["opt_skin_classic","opt_time_classic","opt_size_classic","opt_bord_classic",
@@ -214,19 +292,18 @@ def reloadOption(hover=""):
         else:
             makeButton(but)
 
-
 #Fonc: [UI] Boutons options
 def drawOptBut(text, xO, yO, act="classic"):
     if act == "classic":
-        pygame.draw.rect(fe, getColorByName("white"), (xO, yO, 250, 25))
-        pygame.draw.rect(fe, getColorByName("white"), (xO-10, yO+4, 5, 16))
+        pygame.draw.rect(fe, getColorByName("white"), ((wwidth-1125)+xO, yO, 250, 25))
+        pygame.draw.rect(fe, getColorByName("white"), ((wwidth-1125)+(xO-10), yO+4, 5, 16))
         text = getFont("Ubuntu-R",20).render(text, 1, getColorByName("midnight"))
-        fe.blit(text, (xO, yO))
+        fe.blit(text, ((wwidth-1125)+xO, yO))
     else:
-        pygame.draw.rect(fe, getColorByName("white"), (xO, yO, 250, 25))
-        pygame.draw.rect(fe, getColorByName("darkred"), (xO-10, yO+4, 5, 16))
+        pygame.draw.rect(fe, getColorByName("white"), ((wwidth-1125)+xO, yO, 250, 25))
+        pygame.draw.rect(fe, getColorByName("darkred"), ((wwidth-1125)+(xO-10), yO+4, 5, 16))
         text = getFont("Ubuntu-R",20).render(text, 1, getColorByName("darkred"))
-        fe.blit(text, (xO, yO))
+        fe.blit(text, ((wwidth-1125)+xO, yO))
 
 #Fonc: [UI] Boutons challenge
 def drawClgBut(text, xO, yO, act="classic"):
@@ -243,20 +320,40 @@ def drawClgBut(text, xO, yO, act="classic"):
         textcolor = getColorByName("white")
         if color == (230, 230, 230):
             textcolor = getColorByName("black")
-        pygame.draw.rect(fe, color, (xO, yO, 150, 80))
+        pygame.draw.rect(fe, color, ((wwidth-1125)+xO, yO, 150, 80))
         text = getFont("Ubuntu-B",25).render(text, 1, textcolor)
-        fe.blit(text, (xO+30, yO+24))
+        fe.blit(text, ((wwidth-1125)+xO+30, yO+24))
     else:
         color = (color[0]+20,color[1]+20,color[2]+20)
-        pygame.draw.rect(fe, color, (xO, yO, 150, 80))
+        pygame.draw.rect(fe, color, ((wwidth-1125)+xO, yO, 150, 80))
         text = getFont("Ubuntu-B",25).render(text, 1, getColorByName("white"))
-        fe.blit(text, (xO+30, yO+24))
+        fe.blit(text, ((wwidth-1125)+xO+30, yO+24))
         
 
 #Fonc: [UI] boutons
 def makeButton(bID):
     global size
     fontm = getFont("Ubuntu-B",16)
+    if bID == "newmaj_classic":
+        pygame.draw.rect(fe, getColorByName("darkyellow"), (psize, 500, wwidth-psize,wheight-500))
+        majtitle2 = getFont("Ubuntu-B",26).render("NOUVELLE", 1, getColorByName("white"))
+        fe.blit(majtitle2, (psize+20, 510))
+        majtitle = getFont("Ubuntu-B",32).render("MISE A JOUR", 1, getColorByName("white"))
+        fe.blit(majtitle, (psize+20, 530))
+        majtitle2 = getFont("Ubuntu-B",26).render("DISPONIBLE !", 1, getColorByName("white"))
+        fe.blit(majtitle2, (psize+20, 556))
+        majtitle3 = getFont("Ubuntu-B",24).render("cliquez ici.", 1, getColorByName("whitesmoke"))
+        fe.blit(majtitle3, (psize+20, wheight-50))
+    elif bID == "newmaj_hovered":
+        pygame.draw.rect(fe, getColorByName("yellow"), (psize, 500, wwidth-psize,wheight-500))
+        majtitle2 = getFont("Ubuntu-B",26).render("NOUVELLE", 1, getColorByName("orange"))
+        fe.blit(majtitle2, (psize+20, 510))
+        majtitle = getFont("Ubuntu-B",32).render("MISE A JOUR", 1, getColorByName("orange"))
+        fe.blit(majtitle, (psize+20, 530))
+        majtitle2 = getFont("Ubuntu-B",26).render("DISPONIBLE !", 1, getColorByName("orange"))
+        fe.blit(majtitle2, (psize+20, 556))
+        majtitle3 = getFont("Ubuntu-B",24).render("oui, ici. :)", 1, getColorByName("red"))
+        fe.blit(majtitle3, (psize+20, wheight-50))
     if bID == "jouer_classic":
         pygame.draw.rect(fe, getColorByName("black"), (400, 475, 200, 70))
         pygame.draw.rect(fe, getColorByName("white"), (404, 479, 192, 62))
@@ -278,13 +375,13 @@ def makeButton(bID):
         text = fontm.render("Options", 1, getColorByName("orange"))
         fe.blit(text, (468, 564))
     elif bID == "retour_classic":
-        pygame.draw.rect(fe, getColorByName("darkred"), (820, 30, 125, 40))
+        pygame.draw.rect(fe, getColorByName("darkred"), ((wwidth-1125)+820, 30, 125, 40))
         text = getFont("Ubuntu-R",20).render("Retour", 1, getColorByName("orange"))
-        fe.blit(text, (850, 38))
+        fe.blit(text, ((wwidth-1125)+850, 38))
     elif bID == "retour_hovered":
-        pygame.draw.rect(fe, getColorByName("orange"), (820, 30, 125, 40))
+        pygame.draw.rect(fe, getColorByName("orange"), ((wwidth-1125)+820, 30, 125, 40))
         text = getFont("Ubuntu-R",20).render("Retour", 1, getColorByName("darkred"))
-        fe.blit(text, (850, 38))
+        fe.blit(text, ((wwidth-1125)+850, 38))
     elif bID == "opt_size_classic":
         drawOptBut("Taille : " + str(size),120,190,"classic")
     elif bID == "opt_size_hovered":
@@ -333,11 +430,11 @@ def resetScreen(color=getColorByName("white")):
 def objectivePlace():
     global x0,y0
     resetScreen()
-    x0 = size*randrange(0,int((1000-size)/size))
-    y0 = size*randrange(0,int((700-size)/size))
+    x0 = size*randrange(0,int((wwidth)/size))
+    y0 = size*randrange(0,int((wheight)/size))
     while verifQueue(x0,y0) == True:
-        x0 = size*randrange(0,int((1000-size)/size))
-        y0 = size*randrange(0,int((700-size)/size))
+        x0 = size*randrange(0,int((wwidth)/size))
+        y0 = size*randrange(0,int((wheight)/size))
 
 #Fonc: faire apparaitre un "carré"
 def drawRect(color,x,y,osize=-1):
@@ -352,16 +449,16 @@ def verifChallenges():
     global mode
     wrong = False
     if mode == "easy":
-        if size != 50 or clockspeed != 10 or objlenght != 3 or screenborders != False:
+        if size != sizesOK[1] or clockspeed != 10 or objlenght != 3 or screenborders != False:
             wrong = True
     if mode == "normal":
-        if size != 25 or clockspeed != 5 or objlenght != 6 or screenborders != True:
+        if size != sizesOK[2] or clockspeed != 4 or objlenght != 6 or screenborders != True:
             wrong = True
     if mode == "hard":
-        if size != 25 or clockspeed != 3 or objlenght != 12 or screenborders != True:
+        if size != sizesOK[2] or clockspeed != 2 or objlenght != 12 or screenborders != True:
             wrong = True
     if mode == "vhard":
-        if size != 20 or clockspeed != 1 or objlenght != 20 or screenborders != True:
+        if size != sizesOK[3] or clockspeed != 2 or objlenght != 20 or screenborders != True:
             wrong = True
     if wrong == True:
         mode = ""
@@ -476,6 +573,26 @@ def updateSnake():
 #Fonc: game over
 def sendGameOver():
     global x,y,size,clockspeed,score,snakeCoords,load,lenght,wdaction,menuact,tmit,objlenght
+    #CALCUL XP
+    xpmsg = "+0 XP"
+    if score > 2:
+        xp = score*score
+        if mode == "easy" and score > 5:
+            xp = int(xp/9)
+            addXP(xp)
+            xpmsg = "+" + str(xp) + " XP"
+        elif mode == "normal":
+            xp = int(xp/2)
+            addXP(xp)
+            xpmsg = "+" + str(xp) + " XP"
+        elif mode == "hard":
+            xp = int(xp)
+            addXP(xp)
+            xpmsg = "+" + str(xp) + " XP"
+        elif mode == "vhard":
+            xp = int(2*xp)
+            addXP(xp)
+            xpmsg = "+" + str(xp) + " XP"
     #AFFICHAGE écran
     menuact = 0
     wdaction = "menu"
@@ -484,13 +601,17 @@ def sendGameOver():
     drawRect(getSkin(0),x,y)
     font = getFont("Ubuntu-BI",72)
     text = font.render("Game Over.", 1, (205, 205, 205))
-    fe.blit(text, (294, 296))
+    fe.blit(text, (int(wwidth/2)-6-200, 296))
     text = font.render("Game Over.", 1, (230, 230, 230))
-    fe.blit(text, (297, 298))
+    fe.blit(text, (int(wwidth/2)-3-200, 298))
     text = font.render("Game Over.", 1, getColorByName("white"))
-    fe.blit(text, (300, 300))
+    fe.blit(text, (int(wwidth/2)-200, 300))
+    text = getFont("Ubuntu-B",22).render(xpmsg, 1, getColorByName("white"))
+    fe.blit(text, (int(wwidth/2)-30, 370))
     pygame.display.update()
     pygame.time.Clock().tick(0.5)
+    #Check highscore
+    newScore(score)
     #RESET partie
     snakeCoords=[(x,y)]
     score = 0
@@ -622,12 +743,12 @@ def verifcoords():
     bordloose = False
     xtemp,ytemp = x,y
     if x < 0:
-        x = 1000-size
+        x = wwidth-size
     if y < 0:
-        y = 700-size
-    if x >= 1000:
+        y = wheight-size
+    if x >= wwidth:
         x = 0
-    if y >= 700:
+    if y >= wheight:
         y = 0
     if (xtemp != x or ytemp != y) and screenborders == True:
         bordloose = True
@@ -676,15 +797,15 @@ while load:
             updateCache()
             resetScreen()
             menuact = 0
-            x = size*randrange(0,int((1000-size)/size))
-            y = size*randrange(0,int((700-size)/size))
+            x = size*randrange(0,int((wwidth)/size))
+            y = size*randrange(0,int((wheight-size)/size))
             snakeCoords=[(x,y)]
             #Objectif
             snak2 = pygame.draw.rect(fe, getColorByName("darkyellow"), (x0, y0, size, size))
             drawRect(getSkin(0),x,y)
             #Text
             text = getFont("Ubuntu-B",22).render("Utilisez ZQSD ou les flèches pour vous déplacer.", 1, getColorByName("black"))
-            fe.blit(text, (250, 400))
+            fe.blit(text, (int(wwidth/2)-230, 400))
             pygame.display.update()
             tmit = 1
             #Display update
@@ -758,27 +879,27 @@ while load:
             resetScreen()
             #DESIGN PAGE
             #header
-            pygame.draw.rect(fe, getColorByName("darkred"), (0, 0, 1000, 100))
+            pygame.draw.rect(fe, getColorByName("darkred"), (0, 0, wwidth, 100))
             text = getFont("Ubuntu-B",50).render("Options", 1, getColorByName("white"))
             fe.blit(text, (100, 18))
-            #taille et vitesse
+            #taille et vitesse(wwidth-1000)
             text = getFont("Ubuntu-B",22).render("GENERAL", 1, getColorByName("black"))
-            fe.blit(text, (100, 150))
+            fe.blit(text, ((wwidth-1125)+100, 150))
             #Skin
             text = getFont("Ubuntu-B",22).render("SKIN", 1, getColorByName("black"))
-            fe.blit(text, (100, 270))
+            fe.blit(text, ((wwidth-1125)+100, 270))
             #Règles
             text = getFont("Ubuntu-B",22).render("RÈGLES", 1, getColorByName("black"))
-            fe.blit(text, (100, 390))
+            fe.blit(text, ((wwidth-1125)+100, 390))
             #Challenges
             text = getFont("Ubuntu-B",22).render("CHALLENGES", 1, getColorByName("black"))
-            fe.blit(text, (100, 510))
+            fe.blit(text, ((wwidth-1125)+100, 510))
             #Boutons
             reloadOption()
             menuact = 1
         #MAJ SKIN (PREVUE)
         i=0
-        x,y,lenght = 100,310,16
+        x,y,lenght = (wwidth-1125)+100,310,16
         for i in range(0,16):
             drawRect(getSkin(i),x,y,25)
             x+=25
@@ -792,43 +913,43 @@ while load:
                 mousecoords = pygame.mouse.get_pos()
                 #Hover boutons
                 #RETOUR
-                if (mousecoords[0] >= 820 and mousecoords[0] <= 945) and (mousecoords[1] >= 30 and mousecoords[1] <= 70):
+                if (mousecoords[0] >= (wwidth-1125)+820 and mousecoords[0] <= (wwidth-1125)+945) and (mousecoords[1] >= 30 and mousecoords[1] <= 70):
                     reloadOption("retour")
                     pygame.mouse.set_cursor(*pygame.cursors.diamond)
                 #OPT: taille
-                elif (mousecoords[0] >= 120 and mousecoords[0] <= 220) and (mousecoords[1] >= 190 and mousecoords[1] <= 210):
+                elif (mousecoords[0] >= (wwidth-1125)+120 and mousecoords[0] <= (wwidth-1125)+220) and (mousecoords[1] >= 190 and mousecoords[1] <= 210):
                     reloadOption("opt_size")
                     pygame.mouse.set_cursor(*pygame.cursors.diamond)
                 #OPT: temps
-                elif (mousecoords[0] >= 120 and mousecoords[0] <= 320) and (mousecoords[1] >= 230 and mousecoords[1] <= 250):
+                elif (mousecoords[0] >= (wwidth-1125)+120 and mousecoords[0] <= (wwidth-1125)+320) and (mousecoords[1] >= 230 and mousecoords[1] <= 250):
                     reloadOption("opt_time")
                     pygame.mouse.set_cursor(*pygame.cursors.diamond)
                 #OPT: skin
-                elif (mousecoords[0] >= 120 and mousecoords[0] <= 320) and (mousecoords[1] >= 350 and mousecoords[1] <= 370):
+                elif (mousecoords[0] >= (wwidth-1125)+120 and mousecoords[0] <= (wwidth-1125)+320) and (mousecoords[1] >= 350 and mousecoords[1] <= 370):
                     reloadOption("opt_skin")
                     pygame.mouse.set_cursor(*pygame.cursors.diamond)
                 #OPT: bordures
-                elif (mousecoords[0] >= 120 and mousecoords[0] <= 320) and (mousecoords[1] >= 430 and mousecoords[1] <= 450):
+                elif (mousecoords[0] >= (wwidth-1125)+120 and mousecoords[0] <= (wwidth-1125)+320) and (mousecoords[1] >= 430 and mousecoords[1] <= 450):
                     reloadOption("opt_bord")
                     pygame.mouse.set_cursor(*pygame.cursors.diamond)
                 #OPT: grossissement
-                elif (mousecoords[0] >= 120 and mousecoords[0] <= 320) and (mousecoords[1] >= 470 and mousecoords[1] <= 490):
+                elif (mousecoords[0] >= (wwidth-1125)+120 and mousecoords[0] <= (wwidth-1125)+320) and (mousecoords[1] >= 470 and mousecoords[1] <= 490):
                     reloadOption("opt_objl")
                     pygame.mouse.set_cursor(*pygame.cursors.diamond)
                 #CLG: Facile
-                elif (mousecoords[0] >= 100 and mousecoords[0] <= 250) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
+                elif (mousecoords[0] >= (wwidth-1125)+100 and mousecoords[0] <= (wwidth-1125)+250) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
                     reloadOption("clg_easy")
                     pygame.mouse.set_cursor(*pygame.cursors.diamond)
                 #CLG: Normal
-                elif (mousecoords[0] >= 300 and mousecoords[0] <= 450) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
+                elif (mousecoords[0] >= (wwidth-1125)+300 and mousecoords[0] <= (wwidth-1125)+450) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
                     reloadOption("clg_normal")
                     pygame.mouse.set_cursor(*pygame.cursors.diamond)
                 #CLG: Dur
-                elif (mousecoords[0] >= 500 and mousecoords[0] <= 650) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
+                elif (mousecoords[0] >= (wwidth-1125)+500 and mousecoords[0] <= (wwidth-1125)+650) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
                     reloadOption("clg_hard")
                     pygame.mouse.set_cursor(*pygame.cursors.diamond)
                 #CLG: Extreme
-                elif (mousecoords[0] >= 700 and mousecoords[0] <= 850) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
+                elif (mousecoords[0] >= (wwidth-1125)+700 and mousecoords[0] <= (wwidth-1125)+850) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
                     reloadOption("clg_vhard")
                     pygame.mouse.set_cursor(*pygame.cursors.diamond)
                 else:
@@ -837,13 +958,13 @@ while load:
             #Click souris
             if event.type == pygame.MOUSEBUTTONDOWN:
                 #RETOUR
-                if (mousecoords[0] >= 820 and mousecoords[0] <= 945) and (mousecoords[1] >= 30 and mousecoords[1] <= 70):
+                if (mousecoords[0] >= (wwidth-1125)+820 and mousecoords[0] <= (wwidth-1125)+945) and (mousecoords[1] >= 30 and mousecoords[1] <= 70):
                     resetScreen()
                     menuact = 0
                     wdaction = "menu"
                 #TAILLE
-                elif (mousecoords[0] >= 120 and mousecoords[0] <= 220) and (mousecoords[1] >= 190 and mousecoords[1] <= 210):
-                    sizes = [5,10,20,25,40,50]
+                elif (mousecoords[0] >= (wwidth-1125)+120 and mousecoords[0] <= (wwidth-1125)+220) and (mousecoords[1] >= 190 and mousecoords[1] <= 210):
+                    sizes = sizesOK
                     siID = sizes.index(size)
                     siID += 1
                     if siID == len(sizes):
@@ -851,14 +972,14 @@ while load:
                     size = sizes[siID]
                     reloadOption("opt_size")
                 #BORDURES
-                elif (mousecoords[0] >= 120 and mousecoords[0] <= 320) and (mousecoords[1] >= 430 and mousecoords[1] <= 450):
+                elif (mousecoords[0] >= (wwidth-1125)+120 and mousecoords[0] <= (wwidth-1125)+320) and (mousecoords[1] >= 430 and mousecoords[1] <= 450):
                     if screenborders == False:
                         screenborders = True
                     else:
                         screenborders = False
                     reloadOption("opt_bord")
                 #VITESSE
-                elif (mousecoords[0] >= 120 and mousecoords[0] <= 320) and (mousecoords[1] >= 230 and mousecoords[1] <= 250):
+                elif (mousecoords[0] >= (wwidth-1125)+120 and mousecoords[0] <= (wwidth-1125)+320) and (mousecoords[1] >= 230 and mousecoords[1] <= 250):
                     speeds = [1,2,3,4,5,6,7,8,9,10]
                     spID = speeds.index(clockspeed)
                     spID += 1
@@ -867,7 +988,7 @@ while load:
                     clockspeed = speeds[spID]
                     reloadOption("opt_time")
                 #GROSSISSEMENT
-                elif (mousecoords[0] >= 120 and mousecoords[0] <= 320) and (mousecoords[1] >= 470 and mousecoords[1] <= 490):
+                elif (mousecoords[0] >= (wwidth-1125)+120 and mousecoords[0] <= (wwidth-1125)+320) and (mousecoords[1] >= 470 and mousecoords[1] <= 490):
                     grosst = [0,1,2,3,4,5,6,8,10,15,20]
                     grID = grosst.index(objlenght)
                     grID += 1
@@ -876,7 +997,7 @@ while load:
                     objlenght = grosst[grID]
                     reloadOption("opt_objl")
                 #SKIN
-                elif (mousecoords[0] >= 120 and mousecoords[0] <= 320) and (mousecoords[1] >= 350 and mousecoords[1] <= 370):
+                elif (mousecoords[0] >= (wwidth-1125)+120 and mousecoords[0] <= (wwidth-1125)+320) and (mousecoords[1] >= 350 and mousecoords[1] <= 370):
                     if skin == "classic":
                         skin = "france"
                     elif skin == "france":
@@ -889,34 +1010,34 @@ while load:
                         skin = "classic"
                     reloadOption("opt_skin")
                 #CLG: Facile
-                elif (mousecoords[0] >= 100 and mousecoords[0] <= 250) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
+                elif (mousecoords[0] >= (wwidth-1125)+100 and mousecoords[0] <= (wwidth-1125)+250) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
                     mode = "easy"
-                    size = 50
+                    size = sizesOK[1]
                     clockspeed = 10
                     screenborders = False
                     objlenght = 3
                     reloadOption("clg_easy")
                 #CLG: Moyen
-                elif (mousecoords[0] >= 300 and mousecoords[0] <= 450) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
+                elif (mousecoords[0] >= (wwidth-1125)+300 and mousecoords[0] <= (wwidth-1125)+450) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
                     mode = "normal"
-                    size = 25
-                    clockspeed = 5
+                    size = sizesOK[2]
+                    clockspeed = 4
                     screenborders = True
                     objlenght = 6
                     reloadOption("clg_normal")
                 #CLG: Dur
-                elif (mousecoords[0] >= 500 and mousecoords[0] <= 650) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
+                elif (mousecoords[0] >= (wwidth-1125)+500 and mousecoords[0] <= (wwidth-1125)+650) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
                     mode = "hard"
-                    size = 25
-                    clockspeed = 3
+                    size = sizesOK[2]
+                    clockspeed = 2
                     screenborders = True
                     objlenght = 12
                     reloadOption("clg_hard")
                 #CLG: Extreme
-                elif (mousecoords[0] >= 700 and mousecoords[0] <= 850) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
+                elif (mousecoords[0] >= (wwidth-1125)+700 and mousecoords[0] <= (wwidth-1125)+850) and (mousecoords[1] >= 550 and mousecoords[1] <= 630):
                     mode = "vhard"
-                    size = 20
-                    clockspeed = 1
+                    size = sizesOK[3]
+                    clockspeed = 2
                     screenborders = True
                     objlenght = 20
                     reloadOption("clg_vhard")
@@ -927,46 +1048,90 @@ while load:
                 load = False
     #MENU D'ACCUEIL
     elif wdaction == "menu":
-        pygame.time.Clock().tick(15)
-        #Mosaique
-        headNbRect = 0
+        pygame.time.Clock().tick(13)
+        #Mosaique V2
         for headNbRect in range(0,40):
             #Détermination couleur
             if headNbRect < 20:
-                color = (randrange(150,210),randrange(150,210),randrange(150,210))
+                color = (202, 67, 53)
             else:
-                color = getColorByName("white")
+                color = getColorByName("darkred")
             #Localisation
-            xH = size*randrange(0,int((1000)/size))
-            yH = size*randrange(0,int((700-size)/size))
-            while yH > 430:
-                yH = size*randrange(0,int((700-size)/size))
+            psize = 0
+            while psize <= wwidth*0.75:
+                psize+=size
+            xH = size*randrange(0,int((psize)/size))
+            yH = size*randrange(0,int((320)/size))
+            #while yH > 30:
+                #yH = size*randrange(0,int((wheight-size)/size))
             #Affichage
-            drawRect(color,xH,yH)
+            pygame.draw.rect(fe, color, (xH, yH, size, size))
         #Logo
-        font = getFont("Ubuntu-BI",50)
-        logo0 = getFont("Ubuntu-B",22).render("projet", 1, getColorByName("black"))
-        fe.blit(logo0, (454, 288))   
+        font = getFont("Ubuntu-BI",72)
         logo1 = font.render("Snake.", 1, getColorByName("red"))
-        fe.blit(logo1, (425, 300))
+        fe.blit(logo1, (46, 116))
         logo2 = font.render("Snake.", 1, getColorByName("orange"))
-        fe.blit(logo2, (422, 297))
+        fe.blit(logo2, (43, 113))
         logo3 = font.render("Snake.", 1, getColorByName("yellow"))
-        fe.blit(logo3, (419, 294))
+        fe.blit(logo3, (40, 110))
         pygame.display.update()
         if menuact == 0:
             #Mise en place du menu
             resetScreen()
-            exc = getFont("Ubuntu-BI",32).render("Chargement...", 1, getColorByName("midnight"))
-            fe.blit(exc, (20, 325))
-            pygame.display.update()
             #Check version
             checkVersion()
+            #BG
+            pygame.draw.rect(fe, getColorByName("red"), (psize, 320, wwidth-psize, wheight-320))    
+            pygame.draw.rect(fe, getColorByName("darkred"), (0, 0, wwidth, 320))
+            ver = getFont("Ubuntu-BI",22).render(version, 1, getColorByName("darkred"))
+            fe.blit(ver, (wwidth-45, wheight-22))
             #Boutons
             #Jouer
             makeButton("jouer_classic")
             makeButton("options_classic")
             menuact = 1
+            #Level side
+            lvl = getLevel()
+            xp = getXP()
+            for i in range(1,44):
+                if xp >= 50+10*(i*i):
+                    xp -= 50+10*(i*i)
+            lvltitle = getFont("Ubuntu-BI",20).render("niveau.", 1, getColorByName("whitesmoke"))
+            fe.blit(lvltitle, (psize+20, 90))
+            lvllore = getFont("Ubuntu-B",42).render(str(lvl), 1, getColorByName("white"))
+            fe.blit(lvllore, (psize+20, 108))
+            #barre
+            pygame.draw.rect(fe, getColorByName("red"), (psize+20, 160, (wwidth-20)-(psize+20), 40))
+            pygame.draw.rect(fe, getColorByName("orange"), (psize+25, 165, int(((wwidth-25)-(psize+25))*(getLevelPercent()/100)), 30))
+            try:
+                btitle = str(xp) + "/" + str(int(50+10*((lvl+1)*(lvl+1))))
+            except:
+                btitle = "#Error"
+            bartitle = getFont("Ubuntu-B",14).render(btitle, 1, getColorByName("whitesmoke"))
+            fe.blit(bartitle, (psize+30, 170))
+            #Difficulty side
+            difftitle = getFont("Ubuntu-BI",16).render("difficulté.", 1, getColorByName("whitesmoke"))
+            fe.blit(difftitle, (psize+20, 350))
+            #diff text
+            diff = "FACILE"
+            if mode == "normal":
+                diff = "NORMALE"
+            elif mode == "hard":
+                diff = "DIFFICILE"
+            elif mode == "vhard":
+                diff = "EXTRÊME"
+            elif mode == "":
+                diff = "N/A"
+            difflore = getFont("Ubuntu-B",32).render(diff, 1, getColorByName("white"))
+            fe.blit(difflore, (psize+20, 364))
+            #Record side
+            difftitle = getFont("Ubuntu-BI",16).render("record.", 1, getColorByName("whitesmoke"))
+            fe.blit(difftitle, (psize+20, 420))
+            difflore = getFont("Ubuntu-B",32).render(str(getHighScore()), 1, getColorByName("white"))
+            fe.blit(difflore, (psize+20, 434))
+            #Alerte MAJ
+            if needmaj == True:
+                makeButton("newmaj_classic")
         for event in pygame.event.get():
             #Type Souris
             if event.type == pygame.MOUSEMOTION:
@@ -982,9 +1147,14 @@ while load:
                     makeButton("options_hovered")
                     makeButton("jouer_classic")
                     pygame.mouse.set_cursor(*pygame.cursors.diamond)
+                #NEW MAJ
+                elif (mousecoords[0] >= psize and mousecoords[0] <= wwidth) and (mousecoords[1] >= 500 and mousecoords[1] <= wheight) and needmaj == True:
+                    makeButton("newmaj_hovered")
                 else:
                     makeButton("options_classic")
                     makeButton("jouer_classic")
+                    if needmaj == True:
+                        makeButton("newmaj_classic")
                     pygame.mouse.set_cursor(*pygame.cursors.arrow)
             #Type clic souris
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -994,6 +1164,9 @@ while load:
                     objectivePlace()
                     menuact = 2
                     wdaction = "snakestart"
+                #NEW MAJ
+                elif (mousecoords[0] >= psize and mousecoords[0] <= wwidth) and (mousecoords[1] >= 500 and mousecoords[1] <= wheight) and needmaj == True:
+                    webbrowser.open("http://dariusmtn.fr/snake", new=0, autoraise=True)
                 elif (mousecoords[0] >= 450 and mousecoords[0] <= 550) and (mousecoords[1] >= 562 and mousecoords[1] <= 592):
                     pygame.mouse.set_cursor(*pygame.cursors.arrow)
                     wdaction = "options"
@@ -1007,7 +1180,6 @@ while load:
                     menuact = 2
                     wdaction = "snakestart"
             if event.type == QUIT:
-                print("Au revoir :'(")
                 load = False
         
                 
