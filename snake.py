@@ -1,8 +1,6 @@
-import pygame, os
+import pygame, os, urllib.request, webbrowser, stat
 from pygame.locals import *
 from random import *
-import urllib.request
-import webbrowser
 
 pygame.init()
 #Centre la fenetre
@@ -24,7 +22,7 @@ pygame.display.update()
 
 #SUPER VARIABLES
 
-version = "1.5"
+version = "1.5.1"
 
 #Détermine les tailles possibles p/r taille écran
 #PGCD width et height
@@ -219,22 +217,32 @@ def getColorByName(color):
 # FONCTIONS NIVEAUX ET SCORE
 #
 
+xppath = os.getenv('APPDATA') + "\\Snake\\xp"
+scorepath = os.getenv('APPDATA') + "\\Snake\\score"
+
 def getXP():
     try:
-        fichier = open("xp.txt", "r")
+        fichier = open(xppath, "r")
         xp = fichier.read()
         fichier.close()
         return int(xp)
-    except:
-        fichier = open("xp.txt", "w")
-        fichier.write("0")
-        fichier.close()
-        return 0
+    except: #Fonctionne pas car le fichier n'existe pas
+        try: #On en créé un nouveau.
+            fichier = open(xppath, "w")
+            fichier.write("0")
+            fichier.close()
+            return 0
+        except: #Si ça marche pas, on créé le dossier.
+            os.makedirs(os.getenv('APPDATA') + "\\Snake")
+            fichier = open(xppath, "w")
+            fichier.write("0")
+            fichier.close()
+            return 0
         
 
 def addXP(xp):
     xp+=getXP()
-    fichier = open("xp.txt", "w")
+    fichier = open(xppath, "w")
     fichier.write(str(xp))
     fichier.close()
 
@@ -261,19 +269,27 @@ def getLevelPercent():
 
 def getHighScore():
     try:
-        fichier = open("score.txt", "r")
+        fichier = open(scorepath, "r")
         hs = fichier.read()
         fichier.close()
         return int(hs)
-    except:
-        fichier = open("score.txt", "w")
-        fichier.write("0")
-        fichier.close()
-        return 0
+    except: #Comments on "getXP()" method.
+        try:
+            fichier = open(scorepath, "w")
+            fichier.write("0")
+            fichier.close()
+            return 0
+        except:
+            os.makedirs(os.getenv('APPDATA') + "\\Snake")
+            fichier = open(scorepath, "w")
+            fichier.write("0")
+            fichier.close()
+            return 0
+            
     
 def newScore(score):
     if score > getHighScore():
-        fichier = open("score.txt", "w")
+        fichier = open(scorepath, "w")
         fichier.write(str(score))
         fichier.close()
 
@@ -789,6 +805,7 @@ while loadScreen:
         loadScreen = False
     pygame.time.Clock().tick(50)
 
+#Main loop
 while load:
     #BEFORE START SNAKE
     if wdaction == "snakestart":
