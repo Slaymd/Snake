@@ -1,5 +1,6 @@
 import pygame, os, urllib.request, webbrowser, stat
 from pygame.locals import *
+from datetime import datetime
 from random import *
 
 pygame.init()
@@ -22,7 +23,7 @@ pygame.display.update()
 
 #SUPER VARIABLES
 
-version = "1.5.1"
+version = "1.6.1"
 
 #Détermine les tailles possibles p/r taille écran
 #PGCD width et height
@@ -77,6 +78,7 @@ sncr=(231, 76, 60)
 poweruds = True
 powCache = [skin,clockspeed,objlenght]
 powAction = "action"
+powerstats = [0,0] #bonus / malus
 
 #Design vars
 
@@ -219,6 +221,7 @@ def getColorByName(color):
 
 xppath = os.getenv('APPDATA') + "\\Snake\\xp"
 scorepath = os.getenv('APPDATA') + "\\Snake\\score"
+historypath = os.getenv('APPDATA') + "\\Snake\\history"
 
 def getXP():
     try:
@@ -269,19 +272,19 @@ def getLevelPercent():
 
 def getHighScore():
     try:
-        fichier = open(scorepath, "r")
+        fichier = open(scorepath + "_" + mode, "r")
         hs = fichier.read()
         fichier.close()
         return int(hs)
     except: #Comments on "getXP()" method.
         try:
-            fichier = open(scorepath, "w")
+            fichier = open(scorepath + "_" + mode, "w")
             fichier.write("0")
             fichier.close()
             return 0
         except:
             os.makedirs(os.getenv('APPDATA') + "\\Snake")
-            fichier = open(scorepath, "w")
+            fichier = open(scorepath + "_" + mode, "w")
             fichier.write("0")
             fichier.close()
             return 0
@@ -289,9 +292,54 @@ def getHighScore():
     
 def newScore(score):
     if score > getHighScore():
-        fichier = open(scorepath, "w")
+        fichier = open(scorepath + "_" + mode, "w")
         fichier.write(str(score))
         fichier.close()
+
+def getHistory():
+    try:
+        fichier = open(historypath, "r")
+        history = fichier.readlines()
+        fichier.close()
+        return [ln.strip() for ln in history] 
+    except: #Comments on "getXP()" method.
+        try:
+            fichier = open(historypath, "w")
+            fichier.write("")
+            fichier.close()
+            return []
+        except:
+            os.makedirs(os.getenv('APPDATA') + "\\Snake")
+            fichier = open(historypath, "w")
+            fichier.write("")
+            fichier.close()
+            return []
+
+def addHistory(bonus,malus,score,xp,diff):
+    #Date
+    date = datetime.now()
+    game_time = str(date.day) + "/" + str(date.month) + "/" + str(date.year) + " " + str(date.hour) + ":" + str(date.minute)
+    #Difficulté
+    diff = translateMode(diff).lower()
+    #Str partie
+    gameHistory = game_time + "," + str(bonus) + "," + str(malus) + "," + str(score) + "," + str(xp) + "," + diff + "\n"
+    #Intégration
+    totalHistory = ""
+    for ln in getHistory():
+        totalHistory += ln + "\n"
+    totalHistory += gameHistory
+    fichier = open(historypath, "w")
+    fichier.write(totalHistory)
+    fichier.close()
+
+def getHistoryGame(nb=1):
+    try:
+        history = getHistory()
+        history.reverse()
+        game = history[nb-1]
+        return game.split(",")
+    except:
+        return "" 
 
 #
 # FONCTIONS UTILITAIRES DU JEU ET DESIGN
@@ -371,25 +419,25 @@ def makeButton(bID):
         majtitle3 = getFont("Ubuntu-B",24).render("oui, ici. :)", 1, getColorByName("red"))
         fe.blit(majtitle3, (psize+20, wheight-50))
     if bID == "jouer_classic":
-        pygame.draw.rect(fe, getColorByName("black"), (400, 475, 200, 70))
-        pygame.draw.rect(fe, getColorByName("white"), (404, 479, 192, 62))
+        pygame.draw.rect(fe, getColorByName("black"), (570, 475, 200, 70))
+        pygame.draw.rect(fe, getColorByName("white"), (574, 479, 192, 62))
         text = getFont("Ubuntu-B",29).render("Jouer", 1, getColorByName("black"))
-        fe.blit(text, (463, 490))
+        fe.blit(text, (633, 490))
     elif bID == "jouer_hovered":
-        pygame.draw.rect(fe, getColorByName("darkred"), (400, 475, 200, 70))
-        pygame.draw.rect(fe, getColorByName("red"), (404, 479, 192, 62))
+        pygame.draw.rect(fe, getColorByName("darkred"), (570, 475, 200, 70))
+        pygame.draw.rect(fe, getColorByName("red"), (574, 479, 192, 62))
         text = getFont("Ubuntu-B",29).render("Jouer", 1, getColorByName("white"))
-        fe.blit(text, (463, 490))
+        fe.blit(text, (633, 490))
     if bID == "options_classic":
-        pygame.draw.rect(fe, getColorByName("darkgrey"), (450, 560, 100, 30))
-        pygame.draw.rect(fe, getColorByName("white"), (453, 563, 94, 24))
+        pygame.draw.rect(fe, getColorByName("darkgrey"), (620, 560, 100, 30))
+        pygame.draw.rect(fe, getColorByName("white"), (623, 563, 94, 24))
         text = fontm.render("Options", 1, getColorByName("darkgrey"))
-        fe.blit(text, (468, 564))
+        fe.blit(text, (638, 564))
     elif bID == "options_hovered":
-        pygame.draw.rect(fe, getColorByName("orange"), (450, 560, 100, 30))
-        pygame.draw.rect(fe, getColorByName("white"), (453, 563, 94, 24))
+        pygame.draw.rect(fe, getColorByName("orange"), (620, 560, 100, 30))
+        pygame.draw.rect(fe, getColorByName("white"), (623, 563, 94, 24))
         text = fontm.render("Options", 1, getColorByName("orange"))
-        fe.blit(text, (468, 564))
+        fe.blit(text, (638, 564))
     elif bID == "retour_classic":
         pygame.draw.rect(fe, getColorByName("darkred"), ((wwidth-1125)+820, 30, 125, 40))
         text = getFont("Ubuntu-R",20).render("Retour", 1, getColorByName("orange"))
@@ -438,6 +486,7 @@ def makeButton(bID):
 
 #Fonc: remet à 0 l'affichage
 def resetScreen(color=getColorByName("white")):
+    global bgcolor
     bgcolor = color
     fe.fill(color)
     pygame.display.update()
@@ -560,7 +609,7 @@ def updateSnake():
     snakeCoords.reverse()
     #Enlève l'affichage du dernier
     lastxy = snakeCoords[0]
-    drawRect((bgcolor),lastxy[0],lastxy[1])
+    drawRect(getColorByName("white"),lastxy[0],lastxy[1])
     #On supprime le dernier carré (coords)
     if dellenght == 0:
         del snakeCoords[0]
@@ -578,9 +627,9 @@ def updateSnake():
     #Data : skin clignotant
     if skin == "blink":
         if skinData == 0:
-            skinData = 1
+            skinData = 10-clockspeed
         else:
-            skinData = 0
+            skinData -= 1
 
 #
 # GESTION PARTIE & CONTROLES
@@ -588,8 +637,9 @@ def updateSnake():
 
 #Fonc: game over
 def sendGameOver():
-    global x,y,size,clockspeed,score,snakeCoords,load,lenght,wdaction,menuact,tmit,objlenght
+    global powerstats,x,y,size,clockspeed,score,snakeCoords,load,lenght,wdaction,menuact,tmit,objlenght
     #CALCUL XP
+    xp = 0
     xpmsg = "+0 XP"
     if score > 2:
         xp = score*score
@@ -626,6 +676,8 @@ def sendGameOver():
     fe.blit(text, (int(wwidth/2)-30, 370))
     pygame.display.update()
     pygame.time.Clock().tick(0.5)
+    #Game history
+    addHistory(powerstats[0],powerstats[1],score,xp,mode)
     #Check highscore
     newScore(score)
     #RESET partie
@@ -635,6 +687,7 @@ def sendGameOver():
     lenght = 1
     tmit = clockspeed
     updateCache(True)
+    powerstats=[0,0]
 
 #Fonc: POWERUDs cache
 def updateCache(reset=False):
@@ -666,6 +719,21 @@ def translatePowerud(name=""):
     else:
         #Si nom de code inexistant, on affiche celui-ci
         return name
+
+#Fonc: Traduction nom de la difficulté
+def translateMode(name="",fem=False):
+    diff = "FACILE"
+    if name == "normal":
+        diff = "NORMAL"
+        if fem == True: #Féminin
+            diff += "E"
+    elif name == "hard":
+        diff = "DIFFICILE"
+    elif name == "vhard":
+        diff = "EXTRÊME"
+    elif name == "":
+        diff = "N/A"
+    return diff
 
 #Fonc: gestion power-up (victoire)
 def sendPowerud():
@@ -712,6 +780,8 @@ def sendPowerud():
         #Nom POWERUD en bas à droite
         text = getFont("Ubuntu-BI",22).render(translatePowerud() + " !", 1, getColorByName("darkgreen"))
         fe.blit(text, (20, 670))
+        #Stat
+        powerstats[0] = powerstats[0]+1
     else:
         #MALUS :(
         malus = ["blink","moregrow","speed"]
@@ -732,6 +802,8 @@ def sendPowerud():
         #Nom POWERUD en bas à droite
         text = getFont("Ubuntu-BI",22).render(translatePowerud() + " !", 1, getColorByName("darkred"))
         fe.blit(text, (20, 670))
+        #Stat
+        powerstats[1] = powerstats[1]+1
         
 
 #Fonc: modifie les coordonnés en fonction de l'action
@@ -791,7 +863,7 @@ def verifcoords():
 
 #Prog: Ecran de démarrage
 loadScreen = True
-screenNb = 91#Screen de démarrage
+screenNb = 91 #Screen de démarrage
 while loadScreen:
     screenNb -= 1
     if screenNb == 90:
@@ -857,7 +929,7 @@ while load:
             menuact = 0
             resetScreen()
         #Gestion du temps (où 20 ticks = 1 avancement)
-        pygame.time.Clock().tick(100) #120 FPS
+        pygame.time.Clock().tick(100) #100 FPS
         if tmit == 0:
             #On avance la tête
             move(adir)
@@ -887,8 +959,28 @@ while load:
                     adir="top"
                 elif (event.key == K_DOWN or event.key == K_s) and (fadir != "top" or lenght == 1):
                     adir="bottom"
+                elif event.key == K_SPACE:
+                    wdaction = "pause"
+                    menuact = 1
                 elif event.key == K_ESCAPE:
                     sendGameOver()
+    #PAUSE GAME
+    elif wdaction == "pause":
+        if menuact == 1:
+            menuact = 0
+            text = font.render("Pause.", 1, getColorByName("midnight"))
+            fe.blit(text, (int(wwidth/2)-100, int(wheight/2)-100))
+            #Display update
+            pygame.display.update()
+        #Events
+        for event in pygame.event.get():
+            #Type clavier
+            if event.type == QUIT:
+                load = False
+            if event.type == KEYDOWN:
+                if event.key == K_SPACE:
+                    wdaction = "snake"
+                    resetScreen(bgcolor)
     #MENU OPTIONS
     elif wdaction == "options":
         pygame.time.Clock().tick(15)
@@ -1100,8 +1192,14 @@ while load:
             #BG
             pygame.draw.rect(fe, getColorByName("red"), (psize, 320, wwidth-psize, wheight-320))    
             pygame.draw.rect(fe, getColorByName("darkred"), (0, 0, wwidth, 320))
+            #Affichage version en fonction de la longueur du texte
+            verwdth = 40
+            if len(version) > 3 and len(version) <= 5:
+                verwdth += 15
+            elif len(version) > 5 and len(version) <= 7:
+                verwdth += 30
             ver = getFont("Ubuntu-BI",22).render(version, 1, getColorByName("darkred"))
-            fe.blit(ver, (wwidth-45, wheight-22))
+            fe.blit(ver, (wwidth-verwdth, wheight-22))
             #Boutons
             #Jouer
             makeButton("jouer_classic")
@@ -1130,15 +1228,7 @@ while load:
             difftitle = getFont("Ubuntu-BI",16).render("difficulté.", 1, getColorByName("whitesmoke"))
             fe.blit(difftitle, (psize+20, 350))
             #diff text
-            diff = "FACILE"
-            if mode == "normal":
-                diff = "NORMALE"
-            elif mode == "hard":
-                diff = "DIFFICILE"
-            elif mode == "vhard":
-                diff = "EXTRÊME"
-            elif mode == "":
-                diff = "N/A"
+            diff = translateMode(mode,True)
             difflore = getFont("Ubuntu-B",32).render(diff, 1, getColorByName("white"))
             fe.blit(difflore, (psize+20, 364))
             #Record side
@@ -1149,18 +1239,55 @@ while load:
             #Alerte MAJ
             if needmaj == True:
                 makeButton("newmaj_classic")
+            #Dernières games
+            pygame.draw.rect(fe, getColorByName("whitesmoke"), (0, 320, 350, wheight-320))    
+            lasttitle = getFont("Ubuntu-B",26).render("HISTORIQUE DE PARTIE.", 1, getColorByName("black"))
+            fe.blit(lasttitle, (20, 340))
+            lastgames = 0
+            yGames = 380
+            while yGames < wheight-50:
+                lastgames += 1
+                game = getHistoryGame(lastgames)
+                if game != "":
+                    #title
+                    title = game[0]
+                    if lastgames == 1:
+                        title += " - Dernière partie"
+                    gameHistory = getFont("Ubuntu-B",18).render(title, 1, getColorByName("midnight"))
+                    fe.blit(gameHistory, (20, yGames))
+                    #score
+                    gameHistory = getFont("Ubuntu-B",35).render(game[3], 1, getColorByName("black"))
+                    fe.blit(gameHistory, (20, yGames+27))
+                    #bonus/malus
+                    yPWDS = yGames + 29
+                    gameHistory = getFont("Ubuntu-B",18).render(game[1] + " up", 1, getColorByName("green"))
+                    fe.blit(gameHistory, (80, yPWDS))
+                    gameHistory = getFont("Ubuntu-B",18).render("-", 1, getColorByName("black"))
+                    fe.blit(gameHistory, (130, yPWDS))
+                    gameHistory = getFont("Ubuntu-B",18).render(game[2] + " dw", 1, getColorByName("red"))
+                    fe.blit(gameHistory, (150, yPWDS))
+                    #XP
+                    gameHistory = getFont("Ubuntu-B",18).render("+" + game[4] + " XP", 1, getColorByName("purple"))
+                    fe.blit(gameHistory, (80, yPWDS+15))
+                    #Difficulté
+                    diff = game[5]
+                    if diff != "n/a":
+                        gameHistory = getFont("Ubuntu-B",18).render("| " + game[5], 1, getColorByName("darkmidnight"))
+                        fe.blit(gameHistory, (210, yPWDS+8))
+                yGames += 80
+            
         for event in pygame.event.get():
             #Type Souris
             if event.type == pygame.MOUSEMOTION:
                 mousecoords = pygame.mouse.get_pos()
                 #Hover boutons
                 #JOUER
-                if (mousecoords[0] >= 400 and mousecoords[0] <= 600) and (mousecoords[1] >= 475 and mousecoords[1] <= 545):
+                if (mousecoords[0] >= 570 and mousecoords[0] <= 770) and (mousecoords[1] >= 475 and mousecoords[1] <= 545):
                     makeButton("jouer_hovered")
                     makeButton("options_classic")
                     pygame.mouse.set_cursor(*pygame.cursors.diamond)
                 #OPTIONS
-                elif (mousecoords[0] >= 450 and mousecoords[0] <= 550) and (mousecoords[1] >= 560 and mousecoords[1] <= 590):
+                elif (mousecoords[0] >= 620 and mousecoords[0] <= 720) and (mousecoords[1] >= 560 and mousecoords[1] <= 590):
                     makeButton("options_hovered")
                     makeButton("jouer_classic")
                     pygame.mouse.set_cursor(*pygame.cursors.diamond)
@@ -1176,7 +1303,7 @@ while load:
             #Type clic souris
             if event.type == pygame.MOUSEBUTTONDOWN:
                 #LANCEMENT DU SNAKE
-                if (mousecoords[0] >= 400 and mousecoords[0] <= 600) and (mousecoords[1] >= 475 and mousecoords[1] <= 545):
+                if (mousecoords[0] >= 570 and mousecoords[0] <= 770) and (mousecoords[1] >= 475 and mousecoords[1] <= 545):
                     pygame.mouse.set_cursor(*pygame.cursors.arrow)
                     objectivePlace()
                     menuact = 2
@@ -1184,7 +1311,8 @@ while load:
                 #NEW MAJ
                 elif (mousecoords[0] >= psize and mousecoords[0] <= wwidth) and (mousecoords[1] >= 500 and mousecoords[1] <= wheight) and needmaj == True:
                     webbrowser.open("http://dariusmtn.fr/snake", new=0, autoraise=True)
-                elif (mousecoords[0] >= 450 and mousecoords[0] <= 550) and (mousecoords[1] >= 562 and mousecoords[1] <= 592):
+                    load=False
+                elif (mousecoords[0] >= 620 and mousecoords[0] <= 720) and (mousecoords[1] >= 562 and mousecoords[1] <= 592):
                     pygame.mouse.set_cursor(*pygame.cursors.arrow)
                     wdaction = "options"
                     menuact = 0
@@ -1198,8 +1326,5 @@ while load:
                     wdaction = "snakestart"
             if event.type == QUIT:
                 load = False
-        
-                
-
 
 pygame.quit()
